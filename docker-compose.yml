@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    command: ["php-fpm"]
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: menu-link-api-app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    working_dir: /var/www
+    networks:
+      - menu-link-api
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: menu-link-api-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: menu_link
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - menu-link-api
+
+  nginx:
+    image: nginx:latest
+    container_name: menu-link-api-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - menu-link-api
+    depends_on:
+      - app
+
+volumes:
+  dbdata:
+
+networks:
+  menu-link-api:
+    driver: bridge
