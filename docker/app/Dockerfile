@@ -21,6 +21,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Instalar o Nginx
 RUN apt-get install -y nginx
 
+RUN docker-php-ext-install pdo pdo_mysql
 
 # Copiar os arquivos do Laravel para dentro do container
 COPY . /var/www
@@ -50,5 +51,7 @@ RUN apt-get install -y supervisor
 # Copiar config do supervisor
 COPY ./docker/supervisord.conf /etc/supervisord.conf
 
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 # Comando de inicialização
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]

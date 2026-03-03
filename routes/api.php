@@ -24,7 +24,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:api')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout', action: [AuthController::class, 'logout']);
         
         Route::get('/user', function (Request $request) {
             return response()->success($request->user());
