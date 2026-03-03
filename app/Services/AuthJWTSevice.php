@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Interfaces\AuthServiceInterface;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AuthJWTSevice implements AuthServiceInterface
 {
@@ -20,13 +23,11 @@ class AuthJWTSevice implements AuthServiceInterface
         if (!$token = $this->auth->attempt($credentials)) {
             return false;
         }
-        
-       ;
+
         return [
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => $this->auth->factory()->getTTL() * 1440,
-            'refresh_token' => $this->refresh(),
+            'token_type'   => 'bearer',
+            'expires_in'   => $this->auth->factory()->getTTL() * 60,
         ];
     }
 
@@ -44,7 +45,7 @@ class AuthJWTSevice implements AuthServiceInterface
         return [
             'access_token' => $newToken,
             'token_type' => 'bearer',
-            'expires_in' => $this->auth->factory()->getTTL() * 1440
+            'expires_in' => $this->auth->factory()->getTTL() * 60
         ];
     }
 
@@ -53,5 +54,17 @@ class AuthJWTSevice implements AuthServiceInterface
         return $this->auth->user();
     }
 
-    public function register(array $data) {}
+    public function register(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            User::create([
+                'name'      => $data['name'],
+                'email'     => $data['email'],
+                'password'  => Hash::make($data['password']),
+                'type_user' => $data['type_user'] ?? 1,
+            ]);
+
+            return true;
+        });
+    }
 }
